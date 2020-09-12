@@ -9,12 +9,92 @@
  */
 
 /**
- * Returns a boolean
+ * Returns the value as a string or an empty string if the
+ * value undefined, null or otherwise falsely.
+ *
+ * @param {any} value - Initial value
+ * @return {string}
+ */
+function toStringShim(value) {
+  if (value && typeof value.toString === 'function') {
+    return value.toString();
+  }
+  return '';
+}
+
+toStringShim.orNull = value => (value === null ? null : toStringShim(value))
+
+/**
+ * Returns either an integer or NaN.
+ *
+ * @param {any} value - Initial value
+ * @return {number}
+ */
+function toIntegerShim(value) {
+  return parseInt(value);
+}
+
+/**
+ * Returns either an integer or null.
+ *
+ * @type {(value: any) => number|null}
+ */
+toIntegerShim.orNull = value => (value === null ? null : toIntegerShim(value))
+
+
+/**
+ * Returns either the value if its an object or an empty object.
+ *
+ * @param {any} value - Initial value
+ * @return {Object}
+ */
+function toObjectShim(value) {
+  if (typeof value === 'object' && value !== null) {
+    return value;
+  }
+  // Don't attempt to fix the values, just ensure type correctness
+  return {};
+}
+
+/**
+ * Returns either an object or null.
+ *
+ * @type {(value: any) => Object|null}
+ */
+toObjectShim.orNull = value => (value === null ? null : toObjectShim(value))
+
+
+/**
+ * Returns either the value if its an object or an empty object.
+ *
+ * @param {(value: any) => Object} shape - Custom coercion function
+ * @return {Object}
+ */
+toObjectShim.shape = (shape) => {
+  /**
+   * Custom object shim. Returns either an object or null
+   *
+   * @param {any} value - Initial value
+   */
+  function toObjectShapeShim(value) {
+    return shape(toObjectShim(value));
+  }
+  /**
+   * Returns either an object or null
+   *
+   * @type {(value: any) => Object|null}
+   */
+  toObjectShapeShim.orNull = value => (value === null ? null : toObjectShapeShim(value))
+  return toObjectShapeShim;
+};
+
+/**
+ * Returns a boolean.
  *
  * @param {any} value - initial value
  * @return {boolean}
  */
-export function toBoolean(value) {
+function toBooleanShim(value) {
   if (typeof value === 'string') {
     if (value.trim().toLocaleLowerCase() === 'false') {
       // "false", "False", " false", "FALSE" all return false
@@ -30,40 +110,17 @@ export function toBoolean(value) {
 }
 
 /**
- * Returns either an integer or NaN
+ * Returns either an boolean or null.
  *
- * @param {any} value - initial value
- * @return {number}
+ * @type {(value: any) => boolean|null}
  */
-export function toInteger(value) {
-  // Acts as a simple wrapper
-  return parseInt(value);
+toBooleanShim.orNull = value => (value === null ? null : toBooleanShim(value))
+
+// Exported coercion types
+export const coercions = {
+  toString: toStringShim,
+  toInteger: toIntegerShim,
+  toObject: toObjectShim,
+  toBoolean: toBooleanShim,
 }
 
-/**
- * Returns either the value if its an object or an empty object
- *
- * @param {any} value - initial value
- * @return {Object}
- */
-export function toObject(value) {
-  if (typeof value === 'object' && value !== null) {
-    return value;
-  }
-  // Don't attempt to fix the values, just ensure type correctness
-  return {};
-}
-
-/**
- * Returns the value as a string or an empty string if the
- * value undefined, null or otherwise falsely.
- *
- * @param {any} value - initial value
- * @return {string}
- */
-export function toString(value) {
-  if (value && typeof value.toString === 'function') {
-    return value.toString();
-  }
-  return '';
-}
