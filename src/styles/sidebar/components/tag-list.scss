@@ -13,6 +13,14 @@
     padding: 2px var.$layout-space--xsmall;
     background: var.$grey-0;
     border-radius: var.$border-radius;
+
+    &.ontology {
+      background-color: var.$nanopub-ontology-color;
+      &,
+      > * {
+        color: var.$nanopub-ontology-contrast-color !important;
+      }
+    }
   }
 
   &__link,
