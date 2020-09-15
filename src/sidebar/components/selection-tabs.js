@@ -8,6 +8,7 @@ import { withServices } from '../util/service-context';
 
 import NewNoteBtn from './new-note-btn';
 import SvgIcon from '../../shared/components/svg-icon';
+import NanoPubPublish from "./nanopub-publish";
 
 /**
  * @typedef {import('../../types/config').MergedConfig} MergedConfig
@@ -155,6 +156,13 @@ function SelectionTabs({ isLoading, settings }) {
           >
             Orphans
           </Tab>
+        )}
+        { selectedTab === uiConstants.TAB_ANNOTATIONS &&(
+          <div
+            style="flex:1;text-align:right"
+          >
+            <NanoPubPublish />
+          </div>
         )}
       </div>
       {selectedTab === uiConstants.TAB_NOTES &&
