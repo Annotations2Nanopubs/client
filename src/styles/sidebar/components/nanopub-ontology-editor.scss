@@ -1,0 +1,13 @@
+@use "../../mixins/forms";
+@use "../../mixins/buttons";
+@use "../../mixins/layout";
+@use "../../mixins/utils";
+@use "../../variables" as var;
+
+.nanopub-ontology-editor {
+  @include layout.vertical-rhythm(var.$layout-space--xsmall);
+  &__input {
+    @include forms.form-input;
+    width: 100%;
+  }
+}
