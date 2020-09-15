@@ -130,6 +130,7 @@ import streamerService from './services/streamer';
 import tagsService from './services/tags';
 import threadsService from './services/threads';
 import toastMessenger from './services/toast-messenger';
+import nanopubsService from './services/nanopubs'
 
 // Redux store.
 import store from './store';
@@ -163,7 +164,8 @@ function startApp(config) {
     .register('tags', tagsService)
     .register('threadsService', threadsService)
     .register('toastMessenger', toastMessenger)
-    .register('store', store);
+    .register('store', store)
+    .register('nanopubs', nanopubsService);
 
   // Register utility values/classes.
   //
