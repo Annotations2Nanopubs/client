@@ -11,6 +11,8 @@ import AnnotationLicense from './annotation-license';
 import AnnotationPublishControl from './annotation-publish-control';
 import MarkdownEditor from './markdown-editor';
 import TagEditor from './tag-editor';
+import NanoPubOntologyEditor from "./nanopub-ontology-editor";
+import NanoPubTagEditor from "./nanopub-tag-editor";
 
 /**
  * @typedef {import("../../types/api").Annotation} Annotation
@@ -24,6 +26,7 @@ import TagEditor from './tag-editor';
  * @prop {MergedConfig} settings - Injected service
  * @prop {Object} toastMessenger - Injected service
  * @prop {Object} tags - Injected service
+ * @prop {Object} nanopubs - nanopubs Service
  */
 
 /**
@@ -37,10 +40,11 @@ function AnnotationEditor({
   settings,
   tags: tagsService,
   toastMessenger,
+  nanopubs
 }) {
   // Track the currently-entered text in the tag editor's input
   const [pendingTag, setPendingTag] = useState(
-    /** @type {string|null} */ (null)
+    /** @type {string|null} */(null)
   );
 
   const draft = useStore(store => store.getDraft(annotation));
@@ -55,8 +59,9 @@ function AnnotationEditor({
   const shouldShowLicense =
     !draft.isPrivate && group && group.type !== 'private';
 
-  const tags = draft.tags;
+  const tags = draft.tags.filter(tag => !nanopubs.tools.ontologies.isOntologyTag(tag));
   const text = draft.text;
+  const [ontologies, setOntologies] = useState(draft.tags.filter(nanopubs.tools.ontologies.isOntologyTag).map(tag => nanopubs.tools.ontologies.decodeOntologyTag(tag, false)));
   const isEmpty = !text && !tags.length;
 
   const onEditTags = ({ tags }) => {
@@ -102,6 +107,14 @@ function AnnotationEditor({
     createDraft(draft.annotation, { ...draft, text });
   };
 
+  const onEditOntology = ({ ontology }) => {
+    if (!ontology || ontologies.indexOf(ontology) >= 0) {
+      // don't add empty or duplicate tags
+      return false;
+    }
+    setOntologies([ontology]);
+  };
+
   const onSave = async () => {
     // If there is any content in the tag editor input field that has
     // not been committed as a tag, go ahead and add it as a tag
@@ -109,6 +122,9 @@ function AnnotationEditor({
     if (pendingTag) {
       onAddTag(pendingTag);
     }
+    // merge ontologies in tags of anotations
+    const ontologiesWithFormat = ontologies.map(ontology => `_${ontology}_`);
+    onEditTags({ tags: [...tags, ...ontologiesWithFormat] });
     try {
       await annotationsService.save(annotation);
     } catch (err) {
@@ -140,12 +156,22 @@ function AnnotationEditor({
         text={text}
         onEditText={onEditText}
       />
-      <TagEditor
-        onAddTag={onAddTag}
-        onRemoveTag={onRemoveTag}
-        onTagInput={setPendingTag}
+      <NanoPubOntologyEditor
+        onEditOntology={onEditOntology}
+        ontologiesList={ontologies}
+      />
+      <NanoPubTagEditor
+        onEditTags={onEditTags}
         tagList={tags}
       />
+      { false &&
+        <TagEditor
+          onAddTag={onAddTag}
+          onRemoveTag={onRemoveTag}
+          onTagInput={setPendingTag}
+          tagList={tags}
+        />
+      }
       <div className="annotation__form-actions u-layout-row">
         <AnnotationPublishControl
           annotation={annotation}
@@ -164,6 +190,7 @@ AnnotationEditor.propTypes = {
   settings: propTypes.object,
   tags: propTypes.object.isRequired,
   toastMessenger: propTypes.object,
+  nanopubs: propTypes.object
 };
 
 AnnotationEditor.injectedProps = [
@@ -171,6 +198,7 @@ AnnotationEditor.injectedProps = [
   'settings',
   'tags',
   'toastMessenger',
+  'nanopubs'
 ];
 
 export default withServices(AnnotationEditor);
